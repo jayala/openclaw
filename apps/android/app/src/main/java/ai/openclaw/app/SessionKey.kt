@@ -26,6 +26,20 @@ internal fun buildNodeMainSessionKey(
   return "agent:$resolvedAgentId:node-${deviceId.take(12)}"
 }
 
+/**
+ * Picks the session that receives wake-word commands: the Chat session by default, or this
+ * device's own session on a dedicated agent when one is selected in Settings → Voice.
+ */
+internal fun resolveVoiceWakeSessionKey(
+  deviceId: String,
+  voiceWakeAgentId: String?,
+  mainSessionKey: String,
+): String {
+  val agentId = voiceWakeAgentId?.trim().orEmpty()
+  if (agentId.isEmpty()) return mainSessionKey
+  return buildNodeMainSessionKey(deviceId, agentId)
+}
+
 /** Human-readable, device-unique label applied when Android creates or adopts its session. */
 internal fun buildAndroidAppSessionLabel(
   displayName: String?,

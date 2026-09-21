@@ -48,6 +48,7 @@ import ai.openclaw.app.locationModeAfterBackgroundSettings
 import ai.openclaw.app.node.DeviceNotificationListenerService
 import ai.openclaw.app.photoReadPermissionsForRequest
 import ai.openclaw.app.reconcileRestoredAction
+import ai.openclaw.app.selectableAgents
 import ai.openclaw.app.setAppLanguage
 import ai.openclaw.app.ui.design.ClawAgentAvatar
 import ai.openclaw.app.ui.design.ClawIconBadge
@@ -700,6 +701,8 @@ private fun VoiceSettingsScreen(
   val voiceWakeLastCommand by viewModel.voiceWakeLastTriggeredCommand.collectAsState()
   val voiceWakeWordsSaving by viewModel.voiceWakeWordsSaving.collectAsState()
   val voiceWakeWordsNoticeText by viewModel.voiceWakeWordsNoticeText.collectAsState()
+  val voiceWakeAgentId by viewModel.voiceWakeAgentId.collectAsState()
+  val gatewayAgents by viewModel.gatewayAgents.collectAsState()
   var wakeWordDrafts by remember(voiceWakeWords) {
     mutableStateOf(voiceWakeWords)
   }
@@ -815,6 +818,13 @@ private fun VoiceSettingsScreen(
           }
         }
       }
+      Text(text = nativeString("Wake Word Agent"), style = ClawTheme.type.section, color = ClawTheme.colors.text)
+      VoiceWakeAgentPanel(
+        agents = gatewayAgents,
+        selectedAgentId = voiceWakeAgentId,
+        connected = isConnected,
+        onSelect = viewModel::setVoiceWakeAgentId,
+      )
       Text(text = nativeString("Talk Provider Setup"), style = ClawTheme.type.section, color = ClawTheme.colors.text)
       VoiceSetupPanel(talkSetupReadiness)
       Text(text = nativeString("Microphone"), style = ClawTheme.type.section, color = ClawTheme.colors.text)
@@ -841,6 +851,54 @@ private fun VoiceSettingsScreen(
 }
 
 @Composable
+private fun VoiceWakeAgentPanel(
+  agents: List<GatewayAgentSummary>,
+  selectedAgentId: String?,
+  connected: Boolean,
+  onSelect: (String?) -> Unit,
+) {
+  val selectable = agents.selectableAgents().distinctBy(GatewayAgentSummary::id)
+  val selectedKnown = selectedAgentId == null || selectable.any { it.id == selectedAgentId }
+  ClawPanel {
+    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+      Text(
+        text = nativeString("Wake-word commands go to this agent in a session of their own. Give it a fast model on the Gateway for quicker spoken replies."),
+        style = ClawTheme.type.body,
+        color = ClawTheme.colors.textMuted,
+      )
+      SettingsSelectableRow(
+        title = nativeString("Same as chat"),
+        subtitle = nativeString("Uses the agent and session selected in Chat."),
+        selected = selectedAgentId == null,
+        icon = Icons.Default.Person,
+        onClick = { onSelect(null) },
+      )
+      if (selectedAgentId != null && !selectedKnown) {
+        HorizontalDivider(color = ClawTheme.colors.border)
+        SettingsSelectableRow(
+          title = selectedAgentId,
+          subtitle = if (connected) nativeString("Not found on this Gateway") else nativeString("Connect to a Gateway to list agents"),
+          selected = true,
+          icon = Icons.Default.Person,
+          onClick = null,
+        )
+      }
+      selectable.forEach { agent ->
+        HorizontalDivider(color = ClawTheme.colors.border)
+        val name = agentPickerName(agent)
+        SettingsSelectableRow(
+          title = name,
+          subtitle = if (name == agent.id) nativeString("Dedicated voice session") else agent.id,
+          selected = agent.id == selectedAgentId,
+          icon = Icons.Default.Person,
+          onClick = { onSelect(agent.id) },
+        )
+      }
+    }
+  }
+}
+
+@Composable
 private fun AudioInputDevicePanel(
   devices: List<AudioInputDeviceOption>,
   preferredDeviceKey: String?,
@@ -852,7 +910,8 @@ private fun AudioInputDevicePanel(
     preferredDeviceKey?.takeUnless { preferredAvailable }?.let(::audioInputDeviceOptionFromKey)
   ClawPanel {
     Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
-      AudioInputDeviceRow(
+      SettingsSelectableRow(
+        icon = Icons.Default.Mic,
         title = nativeString("Automatic"),
         subtitle =
           if (preferredDeviceKey != null && !preferredAvailable) {
@@ -866,7 +925,8 @@ private fun AudioInputDevicePanel(
       )
       unavailablePreferredDevice?.let { device ->
         HorizontalDivider(color = ClawTheme.colors.border)
-        AudioInputDeviceRow(
+        SettingsSelectableRow(
+          icon = Icons.Default.Mic,
           title = device.productName.ifBlank { nativeString("Preferred microphone") },
           subtitle = nativeString("Unavailable"),
           selected = false,
@@ -877,7 +937,8 @@ private fun AudioInputDevicePanel(
       devices.forEach { device ->
         HorizontalDivider(color = ClawTheme.colors.border)
         val typeLabel = audioInputDeviceTypeLabel(device.type)
-        AudioInputDeviceRow(
+        SettingsSelectableRow(
+          icon = Icons.Default.Mic,
           title = device.productName.ifBlank { typeLabel },
           subtitle = typeLabel,
           selected = device.key == preferredDeviceKey,
@@ -890,18 +951,19 @@ private fun AudioInputDevicePanel(
 }
 
 @Composable
-private fun AudioInputDeviceRow(
+private fun SettingsSelectableRow(
   title: String,
   subtitle: String,
   selected: Boolean,
-  pending: Boolean,
+  icon: ImageVector,
   onClick: (() -> Unit)?,
+  pending: Boolean = false,
 ) {
   ClawListItem(
     title = title,
     subtitle = subtitle,
     metadata = nativeString("Next session").takeIf { pending },
-    leading = { ClawIconBadge(Icons.Default.Mic) },
+    leading = { ClawIconBadge(icon) },
     trailing =
       if (selected) {
         {

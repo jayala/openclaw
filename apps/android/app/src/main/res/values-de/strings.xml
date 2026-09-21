@@ -266,6 +266,7 @@
     <string name="native_23a91dbf4886c1f9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Der Gateway kann diesen Pfad ändern, aber einen vorhandenen Pfad nicht löschen."</string>
     <string name="native_23de9b0a34210ace" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"TTS"</string>
     <string name="native_23e39291d6135814" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Wird gespeichert…"</string>
+    <string name="native_23e6ae033ca7edc1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Wake Word Agent"</string>
     <string name="native_23efe6e06220d589" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Fortschrittsnotiz"</string>
     <string name="native_24047d2b5cfd52f4" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Anker %1$s"</string>
     <string name="native_2419329067823cab" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"search"</string>
@@ -442,6 +443,7 @@
     <string name="native_3af6d3a3d750c8ac" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Diese Anmeldemethode ist nicht verfügbar. Gehen Sie zurück und wählen Sie eine andere."</string>
     <string name="native_3b46b7912670bfb0" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Keine archivierten Threads"</string>
     <string name="native_3b851469ea31d489" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Die auf diesem Gateway verfügbaren Assistenten auswählen und prüfen."</string>
+    <string name="native_3bc39a32e4e028e2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Wake-word commands go to this agent in a session of their own. Give it a fast model on the Gateway for quicker spoken replies."</string>
     <string name="native_3be0085a6bd88cdd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Sprachmodus aktiv"</string>
     <string name="native_3bee4ede6bf4436c" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"In Arbeit · 1 aktive Ausführung"</string>
     <string name="native_3c6168bbf86e6e4b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Zustimmen und Aktivieren"</string>
@@ -505,6 +507,7 @@
     <string name="native_43cc23fa52b87b4c" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"dokument"</string>
     <string name="native_43db639fb5a5acc4" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway einrichten"</string>
     <string name="native_43e3c3b1379bb838" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Video abspielen"</string>
+    <string name="native_43e92294eadefbf1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Same as chat"</string>
     <string name="native_4408aaecc2b1470d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Die gespeicherte Authentifizierung ist ungültig. Authentifizieren Sie sich erneut oder setzen Sie diese Gateway-Verbindung zurück."</string>
     <string name="native_44173ba2044fb22f" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Während der Nutzung"</string>
     <string name="native_4441146b0fe1d5c6" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"screenshot"</string>
@@ -886,6 +889,7 @@
     <string name="native_7817cd06563196ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Bild nicht verfügbar"</string>
     <string name="native_788011833a5a0f22" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Benachrichtigungen"</string>
     <string name="native_78af93f13a7e5044" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Anwenden, Ablehnen und Quarantäne erfordern den Berechtigungsumfang operator.admin. Verbinden Sie sich erneut mit gemeinsamen Gateway-Zugangsdaten oder genehmigen Sie eine Erweiterung des Geräteberechtigungsumfangs auf operator.admin, um Lebenszyklusaktionen zu aktivieren."</string>
+    <string name="native_78bd3bca805fcbda" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Not found on this Gateway"</string>
     <string name="native_78cf92644b977b6d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Diese Anmeldesitzung ist beendet. Aktualisieren Sie die Ansicht und starten Sie erneut."</string>
     <string name="native_78e7771b8b46e11d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Orange"</string>
     <string name="native_78f25f393aa9bcbf" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"sticker upload"</string>
@@ -903,6 +907,7 @@
     <string name="native_7a211017043ea5cb" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Authentifizierung erforderlich"</string>
     <string name="native_7a50b4ba32889b2e" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ClawHub-Details für %1$s konnten nicht geladen werden."</string>
     <string name="native_7a9e81763228f42a" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Standard: 100 %. Nur auf diesem Gerät."</string>
+    <string name="native_7abcfbd31abbc3a1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Uses the agent and session selected in Chat."</string>
     <string name="native_7ac362063b9f2046" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Knoten"</string>
     <string name="native_7ace190202442cde" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Ruhezustand verhindern"</string>
     <string name="native_7ad4f63b52f9ec5c" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Diagramm vorübergehend nicht verfügbar. Öffnen Sie die Diagrammoptionen und wählen Sie Diagramm erneut laden. Sie können den Quelltext weiterhin lesen oder kopieren."</string>
@@ -1083,6 +1088,7 @@
     <string name="native_93c59f1918d177c6" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Arbeit planen"</string>
     <string name="native_93d8874c8c86f0fc" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"console"</string>
     <string name="native_942087cc2d41e013" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Erneut versuchen"</string>
+    <string name="native_94392891279124a5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Connect to a Gateway to list agents"</string>
     <string name="native_943a630198a15ae2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Starten Sie einen Chat, und Ihre aktiven OpenClaw-Unterhaltungen werden hier angezeigt."</string>
     <string name="native_9446c09dff7cb76a" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Automatisierung konnte nicht geladen werden."</string>
     <string name="native_944946b3f36d1520" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Shell im Arbeitsbereich des Agenten"</string>
@@ -1277,6 +1283,7 @@
     <string name="native_afe7b1f9c558450d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Keine Anbieternutzung"</string>
     <string name="native_aff0766a5290e117" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Überprüfen"</string>
     <string name="native_b0375de83dab3599" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Mikrofonberechtigung ist erforderlich."</string>
+    <string name="native_b03e32fbee76d75d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Dedicated voice session"</string>
     <string name="native_b0eeb9e9e45398b5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$sd"</string>
     <string name="native_b10d60f36b858926" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s verfügbar"</string>
     <string name="native_b14406bcc83988e4" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Der Status der Antwort ist unbekannt. Öffnen Sie die Unterhaltung, bevor Sie erneut senden."</string>

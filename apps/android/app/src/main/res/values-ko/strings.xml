@@ -266,6 +266,7 @@
     <string name="native_23a91dbf4886c1f9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway는 이 경로를 변경할 수 있지만 기존 경로를 지울 수는 없습니다."</string>
     <string name="native_23de9b0a34210ace" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"TTS"</string>
     <string name="native_23e39291d6135814" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"저장 중…"</string>
+    <string name="native_23e6ae033ca7edc1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Wake Word Agent"</string>
     <string name="native_23efe6e06220d589" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"진행 상황 메모"</string>
     <string name="native_24047d2b5cfd52f4" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"앵커 %1$s"</string>
     <string name="native_2419329067823cab" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"search"</string>
@@ -442,6 +443,7 @@
     <string name="native_3af6d3a3d750c8ac" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"이 로그인 방법은 사용할 수 없습니다. 돌아가서 다른 방법을 선택하세요."</string>
     <string name="native_3b46b7912670bfb0" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"보관된 스레드가 없습니다"</string>
     <string name="native_3b851469ea31d489" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"이 Gateway에서 사용 가능한 어시스턴트를 선택하고 살펴보세요."</string>
+    <string name="native_3bc39a32e4e028e2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Wake-word commands go to this agent in a session of their own. Give it a fast model on the Gateway for quicker spoken replies."</string>
     <string name="native_3be0085a6bd88cdd" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"음성 대화 모드 활성화됨"</string>
     <string name="native_3bee4ede6bf4436c" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"작업 중 · 1개 실행 중"</string>
     <string name="native_3c6168bbf86e6e4b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"동의 및 활성화"</string>
@@ -505,6 +507,7 @@
     <string name="native_43cc23fa52b87b4c" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"문서"</string>
     <string name="native_43db639fb5a5acc4" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway 설정"</string>
     <string name="native_43e3c3b1379bb838" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"동영상 재생"</string>
+    <string name="native_43e92294eadefbf1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Same as chat"</string>
     <string name="native_4408aaecc2b1470d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"저장된 인증 정보가 유효하지 않습니다. 다시 인증하거나 이 Gateway 연결을 초기화하세요."</string>
     <string name="native_44173ba2044fb22f" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"사용 중"</string>
     <string name="native_4441146b0fe1d5c6" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"screenshot"</string>
@@ -886,6 +889,7 @@
     <string name="native_7817cd06563196ee" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"이미지를 사용할 수 없음"</string>
     <string name="native_788011833a5a0f22" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"알림"</string>
     <string name="native_78af93f13a7e5044" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"적용, 거부, 격리에는 operator.admin 권한 범위가 필요합니다. 수명 주기 작업을 활성화하려면 공유 Gateway 인증으로 다시 연결하거나 기기의 operator.admin 권한 범위 업그레이드를 승인하세요."</string>
+    <string name="native_78bd3bca805fcbda" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Not found on this Gateway"</string>
     <string name="native_78cf92644b977b6d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"이 로그인 세션이 종료되었습니다. 새로고침한 후 다시 시작하세요."</string>
     <string name="native_78e7771b8b46e11d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"주황색"</string>
     <string name="native_78f25f393aa9bcbf" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"sticker upload"</string>
@@ -903,6 +907,7 @@
     <string name="native_7a211017043ea5cb" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"인증 필요"</string>
     <string name="native_7a50b4ba32889b2e" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s의 ClawHub 세부 정보를 불러오지 못했습니다."</string>
     <string name="native_7a9e81763228f42a" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"기본값: 100%. 이 기기에만 적용됩니다."</string>
+    <string name="native_7abcfbd31abbc3a1" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Uses the agent and session selected in Chat."</string>
     <string name="native_7ac362063b9f2046" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"노드"</string>
     <string name="native_7ace190202442cde" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"절전 방지"</string>
     <string name="native_7ad4f63b52f9ec5c" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"일시적으로 다이어그램을 사용할 수 없습니다. 다이어그램 옵션을 열고 다이어그램 다시 시도를 선택하세요. 소스는 계속 읽거나 복사할 수 있습니다."</string>
@@ -1083,6 +1088,7 @@
     <string name="native_93c59f1918d177c6" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"작업 계획"</string>
     <string name="native_93d8874c8c86f0fc" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"console"</string>
     <string name="native_942087cc2d41e013" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"다시 시도"</string>
+    <string name="native_94392891279124a5" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Connect to a Gateway to list agents"</string>
     <string name="native_943a630198a15ae2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"채팅을 시작하면 활성 OpenClaw 대화가 여기에 표시됩니다."</string>
     <string name="native_9446c09dff7cb76a" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"자동화를 불러오지 못했습니다."</string>
     <string name="native_944946b3f36d1520" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"에이전트 작업 공간의 셸"</string>
@@ -1277,6 +1283,7 @@
     <string name="native_afe7b1f9c558450d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"제공업체 사용량 없음"</string>
     <string name="native_aff0766a5290e117" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"검토"</string>
     <string name="native_b0375de83dab3599" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"마이크 권한이 필요합니다."</string>
+    <string name="native_b03e32fbee76d75d" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Dedicated voice session"</string>
     <string name="native_b0eeb9e9e45398b5" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s일"</string>
     <string name="native_b10d60f36b858926" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s개 사용 가능"</string>
     <string name="native_b14406bcc83988e4" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"답장 상태를 알 수 없습니다. 다시 보내기 전에 대화를 열어 주세요."</string>

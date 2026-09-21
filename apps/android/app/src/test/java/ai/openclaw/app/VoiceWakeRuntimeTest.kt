@@ -18,6 +18,7 @@ import kotlinx.coroutines.withTimeout
 import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
+import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -44,6 +45,18 @@ class VoiceWakeRuntimeTest {
     assertEquals(listOf("openclaw", "claude", "computer"), runtime.voiceWakeWords.value)
     assertEquals("Connect to a Gateway to save wake words", runtime.voiceWakeWordsNoticeText.value)
     assertFalse(runtime.voiceWakeWordsSaving.value)
+  }
+
+  @Test
+  fun voiceWakeAgentIdStoresTrimmedValueAndClearsOnBlank() {
+    val runtime = createTestRuntime()
+    assertNull(runtime.voiceWakeAgentId.value)
+
+    runtime.setVoiceWakeAgentId(" voice ")
+    assertEquals("voice", runtime.voiceWakeAgentId.value)
+
+    runtime.setVoiceWakeAgentId("   ")
+    assertNull(runtime.voiceWakeAgentId.value)
   }
 
   @Test

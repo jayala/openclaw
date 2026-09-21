@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-Keeps wake-word listening running in the background through the node foreground service and speaks wake-word replies aloud.
+Keeps wake-word listening running in the background through the node foreground service and speaks wake-word replies aloud. Wake-word commands can go to a dedicated Gateway agent for faster spoken replies.
 
 ## 2026.8.2 - 2026-08-31
 

@@ -13,6 +13,22 @@ class SessionKeyTest {
   }
 
   @Test
+  fun resolveVoiceWakeSessionKeyKeepsChatSessionWithoutDedicatedAgent() {
+    val chatKey = "agent:main:node-1234567890ab"
+
+    assertEquals(chatKey, resolveVoiceWakeSessionKey("1234567890abcdef", null, chatKey))
+    assertEquals(chatKey, resolveVoiceWakeSessionKey("1234567890abcdef", "   ", chatKey))
+  }
+
+  @Test
+  fun resolveVoiceWakeSessionKeyBuildsDeviceScopedKeyForDedicatedAgent() {
+    assertEquals(
+      "agent:voice:node-1234567890ab",
+      resolveVoiceWakeSessionKey("1234567890abcdef", " voice ", "agent:main:node-1234567890ab"),
+    )
+  }
+
+  @Test
   fun buildAndroidAppSessionLabelIncludesDeviceDisplayName() {
     assertEquals("OpenClaw App · 1234567890ab", buildAndroidAppSessionLabel(null, "1234567890abcdef"))
     assertEquals(

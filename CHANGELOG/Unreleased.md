@@ -8,4 +8,5 @@
 
 ### Changes
 
+- Android: add **Settings → Voice → Wake Word Agent** to send wake-word commands to a dedicated Gateway agent in a device-scoped session, so spoken requests can run on a faster model than Chat while the reply is still spoken on the phone.
 - Messaging: allow cross-provider sends and other guarded message actions by default, including WebChat-to-Discord notifications. Existing configurations that omit `tools.message.crossContext.allowAcrossProviders` adopt the new default on upgrade; explicit `false` remains enforced globally and per agent. Set `allowAcrossProviders: false` to retain provider isolation, or both it and `allowWithinProvider: false` to restrict guarded actions to the current bound conversation. See [security guidance](https://docs.openclaw.ai/gateway/security/tool-permissions#cross-provider-messaging). (#149875)

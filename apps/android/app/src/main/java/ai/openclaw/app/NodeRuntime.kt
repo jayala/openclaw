@@ -1167,6 +1167,7 @@ class NodeRuntime private constructor(
     )
   val voiceWakeAvailable: StateFlow<Boolean> = MutableStateFlow(voiceWakeManager.isAvailable).asStateFlow()
   val voiceWakeEnabled: StateFlow<Boolean> = prefs.voiceWakeEnabled
+  val voiceWakeAgentId: StateFlow<String?> = prefs.voiceWakeAgentId
   val voiceWakeWords: StateFlow<List<String>> = prefs.voiceWakeWords
   val voiceWakeIsListening: StateFlow<Boolean> = voiceWakeManager.isListening
   val voiceWakeStatusText: StateFlow<String> = voiceWakeManager.statusText
@@ -4372,6 +4373,11 @@ class NodeRuntime private constructor(
     refreshVoiceWakeCapabilitySurfaceIfChanged()
   }
 
+  /** Null sends wake-word commands to the Chat session; an agent id gives them a device-scoped session on that agent. */
+  fun setVoiceWakeAgentId(agentId: String?) {
+    prefs.setVoiceWakeAgentId(agentId)
+  }
+
   fun setVoiceWakeWords(words: List<String>) {
     val sanitized = VoiceWakePreferences.sanitizeTriggerWords(words)
     if (mode == NodeRuntimeMode.ScreenshotFixture) {
@@ -6284,7 +6290,12 @@ class NodeRuntime private constructor(
     val gatewayId = connectedEndpoint?.stableId ?: return false
     if (!isVoiceWakeWordsReadyFor(gatewayId)) return false
     if (!_nodeConnected.value) return false
-    val sessionKey = resolveMainSessionKey()
+    val sessionKey =
+      resolveVoiceWakeSessionKey(
+        deviceId = identityStore.loadOrCreate().deviceId,
+        voiceWakeAgentId = prefs.voiceWakeAgentId.value,
+        mainSessionKey = resolveMainSessionKey(),
+      )
     val payload =
       buildJsonObject {
         put("eventId", JsonPrimitive(UUID.randomUUID().toString()))

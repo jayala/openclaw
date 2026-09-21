@@ -110,6 +110,7 @@ class SecurePrefs(
     private const val voiceMicEnabledKey = "voice.micEnabled"
     private const val preferredAudioInputDeviceKey = "voice.preferredAudioInputDevice"
     private const val voiceWakeEnabledKey = "voiceWake.enabled"
+    private const val voiceWakeAgentIdKey = "voiceWake.agentId"
     private const val voiceWakeWordsKey = "voiceWake.triggerWords"
     private const val appearanceTextScaleKey = "appearance.textScale"
     private const val appearanceThemeModeKey = "appearance.themeMode"
@@ -258,6 +259,10 @@ class SecurePrefs(
 
   private val _voiceWakeEnabled = MutableStateFlow(plainPrefs.getBoolean(voiceWakeEnabledKey, false))
   val voiceWakeEnabled: StateFlow<Boolean> = _voiceWakeEnabled
+
+  // Null routes wake-word commands to the Chat session; an agent id gives them a session of their own.
+  private val _voiceWakeAgentId = MutableStateFlow(normalizeVoiceWakeAgentId(plainPrefs.getString(voiceWakeAgentIdKey, null)))
+  val voiceWakeAgentId: StateFlow<String?> = _voiceWakeAgentId
 
   private val _voiceWakeWords = MutableStateFlow(loadVoiceWakeWords())
   val voiceWakeWords: StateFlow<List<String>> = _voiceWakeWords
@@ -775,6 +780,16 @@ class SecurePrefs(
     plainPrefs.edit { putBoolean(voiceWakeEnabledKey, value) }
     _voiceWakeEnabled.value = value
   }
+
+  fun setVoiceWakeAgentId(value: String?) {
+    val normalized = normalizeVoiceWakeAgentId(value)
+    plainPrefs.edit {
+      if (normalized == null) remove(voiceWakeAgentIdKey) else putString(voiceWakeAgentIdKey, normalized)
+    }
+    _voiceWakeAgentId.value = normalized
+  }
+
+  private fun normalizeVoiceWakeAgentId(value: String?): String? = value?.trim()?.takeIf { it.isNotEmpty() }
 
   fun setVoiceWakeWords(words: List<String>) {
     val sanitized = VoiceWakePreferences.sanitizeTriggerWords(words)

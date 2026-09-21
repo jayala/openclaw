@@ -64,7 +64,17 @@ Both broadcast to every WebSocket client with read scope (macOS app, WebChat, an
 
 - **macOS**: calls `voicewake.set`/`voicewake.get` and listens for `voicewake.changed` to stay in sync with other clients.
 - **iOS**: calls `voicewake.set`/`voicewake.get` and listens for `voicewake.changed` to keep local wake-word detection responsive.
-- **Android**: calls `voicewake.set`/`voicewake.get`, listens for `voicewake.changed`, and advertises `voiceWake` while enabled (adding it to a paired node prompts a one-time `openclaw nodes approve`). Recognition stays on-device and listens in the Gateway's `talk.speechLocale` (device locale when unset or when that language has no on-device model). On Android 13+ the app streams its own microphone capture to the on-device recognizer, so one session stays open with no start/stop tones and no silence timeout. It runs while the app is visible and keeps running in the background while the node foreground service holds the `microphone` service type; it pauses while Talk, manual dictation, voice-note capture, or message speech owns audio. The final reply to a wake-word command is spoken through the configured Talk voice when the speaker is on.
+- **Android**: calls `voicewake.set`/`voicewake.get`, listens for `voicewake.changed`, and advertises `voiceWake` while enabled (adding it to a paired node prompts a one-time `openclaw nodes approve`). Recognition stays on-device and listens in the Gateway's `talk.speechLocale` (device locale when unset or when that language has no on-device model). On Android 13+ the app streams its own microphone capture to the on-device recognizer, so one session stays open with no start/stop tones and no silence timeout. It runs while the app is visible and keeps running in the background while the node foreground service holds the `microphone` service type; it pauses while Talk, manual dictation, voice-note capture, or message speech owns audio. The final reply to a wake-word command is spoken through the configured Talk voice when the speaker is on. **Settings → Voice → Wake Word Agent** can send wake-word commands to another Gateway agent in a device-scoped session of its own (`agent:<id>:node-<device>`) instead of the Chat session; see below.
+
+## Dedicated agent for spoken replies
+
+A wake-word turn runs on whatever model the target session uses. To answer spoken requests with a faster model without changing the Chat agent, add an agent that uses it:
+
+```bash
+openclaw agents add voice --model openai/gpt-5.6-luna --workspace ~/.openclaw/workspace-voice --non-interactive
+```
+
+Then pick it under **Settings → Voice → Wake Word Agent** on Android. Commands from that phone go to `agent:voice:node-<device>`, the Gateway dispatches them with low thinking, and the phone speaks the final reply through the Talk voice as usual. Chat keeps its own agent, session, and model.
 
 ## Related
 
