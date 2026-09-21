@@ -251,6 +251,34 @@ class VoiceWakeManagerTest {
       assertEquals(2, recognizer.startCount)
     }
 
+  @Test
+  fun segmentedSessionKeepsListeningAcrossNonMatchingSegments() =
+    runTest {
+      val recognizer = FakeVoiceWakeRecognizer()
+      val commands = mutableListOf<VoiceWakeMatch>()
+      val manager =
+        manager(recognizer = recognizer) { match ->
+          commands += match
+          true
+        }
+
+      manager.setForeground(true)
+      manager.setEnabled(true)
+      recognizer.emit(VoiceWakeRecognitionEvent.Ready)
+
+      // A segment without a wake word must not restart the session (that restart plays the tone).
+      recognizer.emit(VoiceWakeRecognitionEvent.Transcript("just talking", isFinal = true, sessionContinues = true))
+      advanceUntilIdle()
+      assertTrue(manager.isListening.value)
+      assertEquals(1, recognizer.startCount)
+      assertEquals(0, recognizer.stopCount)
+
+      recognizer.emit(VoiceWakeRecognitionEvent.Transcript("openclaw show status", isFinal = true, sessionContinues = true))
+      runCurrent()
+      assertEquals(listOf(VoiceWakeMatch("openclaw", "show status")), commands)
+      assertEquals(1, recognizer.stopCount)
+    }
+
   private fun kotlinx.coroutines.test.TestScope.manager(
     recognizer: FakeVoiceWakeRecognizer,
     hasPermission: () -> Boolean = { true },
