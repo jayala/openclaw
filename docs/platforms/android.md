@@ -464,9 +464,11 @@ Camera commands (foreground only; permission-gated): `camera.snap` (jpg), `camer
   type only while an Activity is visible, so the service retries it on the next
   foreground visit if the grant was refused. The final reply to a wake-word
   command is spoken through the Talk voice when the speaker is on. Android
-  advertises `voiceWake` only when enabled, on-device recognition and
-  microphone permission are available, and wake words are synchronized with
-  the current Gateway.
+  advertises `voiceWake` whenever Voice Wake is enabled with on-device
+  recognition and microphone permission available; wake-word commands are only
+  sent once wake words are synchronized with the current Gateway. Adding the
+  capability to an already-paired node needs a one-time `openclaw nodes approve`
+  on the Gateway.
 - Additional Android command families (availability depends on device, permissions, and user settings):
   - `device.status`, `device.info`, `device.permissions`, `device.health`
   - `device.apps` only when **Settings → Phone Capabilities → Installed Apps** is enabled; it lists launcher-visible apps by default (pass `includeNonLaunchable` for the full list).

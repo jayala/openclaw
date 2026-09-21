@@ -177,7 +177,7 @@ class VoiceWakeRuntimeTest {
   }
 
   @Test
-  fun capabilityRefreshTracksGatewayWakeWordReadiness() {
+  fun capabilityFollowsWakeWordToggleWithoutWaitingForGatewaySync() {
     val app = RuntimeEnvironment.getApplication()
     shadowOf(app).grantPermissions(Manifest.permission.RECORD_AUDIO)
     val securePrefs =
@@ -191,12 +191,14 @@ class VoiceWakeRuntimeTest {
     val endpoint = GatewayEndpoint.manual("127.0.0.1", 18789)
     writeField(runtime, "connectedEndpoint", endpoint)
 
-    assertFalse(readField<Boolean>(runtime, "lastVoiceWakeCapabilityEnabled"))
-    writeField(runtime, "voiceWakeWordsGatewayStableId", endpoint.stableId)
+    // The capability is declared as soon as wake words are enabled with microphone access, before
+    // the Gateway has synced any wake words, so a reconnect never re-declares a different surface.
+    assertTrue(readField<Boolean>(runtime, "lastVoiceWakeCapabilityEnabled"))
     readField<CoroutineScope>(runtime, "scope").coroutineContext[Job]?.cancel()
+    prefs.setVoiceWakeEnabled(false)
     invokeNoArg(runtime, "refreshVoiceWakeCapabilitySurfaceIfChanged")
 
-    assertTrue(readField<Boolean>(runtime, "lastVoiceWakeCapabilityEnabled"))
+    assertFalse(readField<Boolean>(runtime, "lastVoiceWakeCapabilityEnabled"))
   }
 
   @Test

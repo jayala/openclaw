@@ -4453,11 +4453,12 @@ class NodeRuntime private constructor(
     voiceWakeManager.setBackgroundListeningAllowed(granted)
   }
 
+  // Advertised from the first connect (like iOS) so a restart does not re-declare a different
+  // surface and trip Gateway reapproval; commands still wait for synced wake words.
   private fun isVoiceWakeCapabilityEnabled(): Boolean =
     prefs.voiceWakeEnabled.value &&
       voiceWakeManager.isAvailable &&
-      hasRecordAudioPermission() &&
-      isVoiceWakeWordsReadyForCurrentGateway()
+      hasRecordAudioPermission()
 
   private fun refreshVoiceWakeCapabilitySurfaceIfChanged() {
     val enabled = isVoiceWakeCapabilityEnabled()
