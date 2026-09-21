@@ -461,7 +461,8 @@ Camera commands (foreground only; permission-gated): `camera.snap` (jpg), `camer
   While enabled, the node foreground service adds the `microphone` service type
   so listening continues after the app leaves the screen; Android grants that
   type only while an Activity is visible, so the service retries it on the next
-  foreground visit if the grant was refused. Android
+  foreground visit if the grant was refused. The final reply to a wake-word
+  command is spoken through the Talk voice when the speaker is on. Android
   advertises `voiceWake` only when enabled, on-device recognition and
   microphone permission are available, and wake words are synchronized with
   the current Gateway.
