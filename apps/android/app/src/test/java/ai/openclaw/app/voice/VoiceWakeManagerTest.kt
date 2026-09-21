@@ -223,6 +223,34 @@ class VoiceWakeManagerTest {
       assertEquals(2, recognizer.startCount)
     }
 
+  @Test
+  fun backgroundListeningAllowanceKeepsRecognizerRunningWithoutForeground() =
+    runTest {
+      val recognizer = FakeVoiceWakeRecognizer()
+      val manager = manager(recognizer = recognizer)
+
+      manager.setEnabled(true)
+      manager.setForeground(false)
+      assertEquals("Paused", manager.statusText.value)
+      assertEquals(0, recognizer.startCount)
+
+      // The node foreground service holds the microphone type: listen while no Activity is visible.
+      manager.setBackgroundListeningAllowed(true)
+      recognizer.emit(VoiceWakeRecognitionEvent.Ready)
+      assertEquals(1, recognizer.startCount)
+      assertTrue(manager.isListening.value)
+
+      // Losing the service (or its microphone type) pauses the recognizer again.
+      manager.setBackgroundListeningAllowed(false)
+      assertEquals("Paused", manager.statusText.value)
+      assertFalse(manager.isListening.value)
+      assertEquals(1, recognizer.startCount)
+
+      // A visible Activity still listens on its own, as before.
+      manager.setForeground(true)
+      assertEquals(2, recognizer.startCount)
+    }
+
   private fun kotlinx.coroutines.test.TestScope.manager(
     recognizer: FakeVoiceWakeRecognizer,
     hasPermission: () -> Boolean = { true },

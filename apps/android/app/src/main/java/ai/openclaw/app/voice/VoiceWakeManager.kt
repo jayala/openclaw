@@ -276,6 +276,7 @@ internal class VoiceWakeManager(
   private val lock = Any()
   private var enabled = false
   private var foreground = false
+  private var backgroundListeningAllowed = false
   private var sessionGeneration = 0L
   private var sessionActive = false
   private var commandInFlight = false
@@ -311,6 +312,19 @@ internal class VoiceWakeManager(
     val action =
       synchronized(lock) {
         foreground = value
+        reconcileLocked()
+      }
+    performRecognizerAction(action)
+  }
+
+  /**
+   * Allows recognition while no Activity is visible. Only the node foreground service may grant
+   * this, after the OS accepted its microphone service type; without it Android denies the mic.
+   */
+  fun setBackgroundListeningAllowed(value: Boolean) {
+    val action =
+      synchronized(lock) {
+        backgroundListeningAllowed = value
         reconcileLocked()
       }
     performRecognizerAction(action)
@@ -360,7 +374,7 @@ internal class VoiceWakeManager(
   private fun reconcileLocked(): RecognizerAction? {
     val blockedStatus = blockedStatusLocked()
     if (blockedStatus != null) {
-      val action = stopSessionLocked(destroy = !enabled || !foreground)
+      val action = stopSessionLocked(destroy = !enabled || !canListenLocked())
       _statusText.value = blockedStatus
       return action
     }
@@ -375,9 +389,11 @@ internal class VoiceWakeManager(
       !enabled -> nativeText("Off")
       !recognizer.isAvailable -> nativeText("On-device speech recognition unavailable")
       !hasRecordAudioPermission() -> nativeText("Microphone permission required")
-      !foreground || suppressionReasons.isNotEmpty() -> nativeText("Paused")
+      !canListenLocked() || suppressionReasons.isNotEmpty() -> nativeText("Paused")
       else -> null
     }
+
+  private fun canListenLocked(): Boolean = foreground || backgroundListeningAllowed
 
   private fun startSessionLocked(): RecognizerAction {
     sessionGeneration += 1

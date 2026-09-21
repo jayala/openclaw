@@ -1178,6 +1178,10 @@ class NodeRuntime private constructor(
   val voiceWakeWordsSaving: StateFlow<Boolean> = _voiceWakeWordsSaving.asStateFlow()
   private val _voiceWakeWordsNoticeText = MutableStateFlow<NativeText?>(null)
   val voiceWakeWordsNoticeText: StateFlow<String?> = _voiceWakeWordsNoticeText.resolveOptionalNativeText()
+  private val _voiceWakeBackgroundCaptureRequested = MutableStateFlow(false)
+
+  /** True while the node foreground service should hold the microphone type for wake-word listening. */
+  val voiceWakeBackgroundCaptureRequested: StateFlow<Boolean> = _voiceWakeBackgroundCaptureRequested.asStateFlow()
 
   private val externalAudioCaptureActive = MutableStateFlow(false)
   private val _voiceCaptureMode = MutableStateFlow(VoiceCaptureMode.Off)
@@ -3438,6 +3442,7 @@ class NodeRuntime private constructor(
     reconcileVoiceWakeCaptureSuppression()
     voiceWakeManager.setForeground(initialForeground)
     voiceWakeManager.setEnabled(prefs.voiceWakeEnabled.value)
+    refreshVoiceWakeBackgroundCaptureRequest()
     scope.launch {
       combine(micCapture.micCooldown, talkMode.audioRetirement.completion, micCapture.audioRetirement.completion) { _, talk, mic ->
         talk to mic
@@ -4360,6 +4365,7 @@ class NodeRuntime private constructor(
     if (prefs.voiceWakeEnabled.value == value) return
     prefs.setVoiceWakeEnabled(value)
     voiceWakeManager.setEnabled(value)
+    refreshVoiceWakeBackgroundCaptureRequest()
     refreshVoiceWakeCapabilitySurfaceIfChanged()
   }
 
@@ -4427,7 +4433,21 @@ class NodeRuntime private constructor(
 
   fun refreshVoiceWakePermission() {
     voiceWakeManager.refreshPermission()
+    refreshVoiceWakeBackgroundCaptureRequest()
     refreshVoiceWakeCapabilitySurfaceIfChanged()
+  }
+
+  private fun refreshVoiceWakeBackgroundCaptureRequest() {
+    _voiceWakeBackgroundCaptureRequested.value =
+      mode == NodeRuntimeMode.Live &&
+      prefs.voiceWakeEnabled.value &&
+      voiceWakeManager.isAvailable &&
+      hasRecordAudioPermission()
+  }
+
+  /** The node foreground service reports whether the OS accepted its microphone service type. */
+  fun setVoiceWakeBackgroundCaptureGranted(granted: Boolean) {
+    voiceWakeManager.setBackgroundListeningAllowed(granted)
   }
 
   private fun isVoiceWakeCapabilityEnabled(): Boolean =
