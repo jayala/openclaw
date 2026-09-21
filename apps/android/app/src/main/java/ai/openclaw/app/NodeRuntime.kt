@@ -1723,6 +1723,7 @@ class NodeRuntime private constructor(
           subscribeOperatorSessionEvents()
           refreshBrandingFromGateway()
           refreshWakeWordsFromGateway()
+          refreshVoiceWakeSpeechLocale()
           refreshExecApprovalsFromGateway()
           if (voiceReplySpeakerLazy.isInitialized()) {
             voiceReplySpeaker.refreshConfig()
@@ -5665,6 +5666,7 @@ class NodeRuntime private constructor(
     if (retireRunState) updateGatewayDefaultAgentId(null)
     invalidateVoiceWakeWordsForGateway()
     voiceWakeReplyTracker.clear()
+    voiceWakeManager.updateRecognitionLanguage(null)
     chat.onGatewayScopeChanging(retireRunState)
     stopMessageSpeech()
     micCapture.onGatewayScopeChanging()
@@ -6107,6 +6109,10 @@ class NodeRuntime private constructor(
       // the gateway to connections bound to our own profile.
       scope.launch { refreshBrandingFromGateway() }
     }
+    if (event == "config.changed") {
+      // TalkMode drops its cached talk.config below; re-read the speech locale after that.
+      scope.launch { refreshVoiceWakeSpeechLocale() }
+    }
     if (event == "sessions.catalog.host") {
       val owner = sessionCatalogProgressOwner.get()
       val progress =
@@ -6198,6 +6204,21 @@ class NodeRuntime private constructor(
     } catch (err: Throwable) {
       Log.d("OpenClawRuntime", "voicewake.get failed: ${err.message ?: err::class.java.simpleName}")
     }
+  }
+
+  /** Wake-word recognition listens in the Gateway's Talk speech locale, falling back to the device locale. */
+  private suspend fun refreshVoiceWakeSpeechLocale() {
+    val gatewayScope = captureGatewayDataScope() ?: return
+    val languageTag =
+      try {
+        talkMode.speechLocaleTagOrNull()
+      } catch (err: CancellationException) {
+        throw err
+      } catch (err: Throwable) {
+        Log.d("OpenClawRuntime", "talk.config speech locale unavailable: ${err.message ?: err::class.java.simpleName}")
+        return
+      }
+    publishGatewayData(gatewayScope) { voiceWakeManager.updateRecognitionLanguage(languageTag) }
   }
 
   private fun applyVoiceWakeWords(payloadJson: String?) {

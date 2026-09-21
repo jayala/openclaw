@@ -13,6 +13,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
 import org.robolectric.RuntimeEnvironment
+import java.util.Locale
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 
@@ -279,6 +280,51 @@ class VoiceWakeManagerTest {
       assertEquals(1, recognizer.stopCount)
     }
 
+  @Test
+  fun gatewaySpeechLocaleDrivesRecognitionLanguageWithDeviceFallback() =
+    runTest {
+      val recognizer = FakeVoiceWakeRecognizer()
+      val manager = manager(recognizer = recognizer)
+      val deviceTag = Locale.getDefault().toLanguageTag()
+
+      manager.setForeground(true)
+      manager.setEnabled(true)
+      assertEquals(deviceTag, recognizer.lastLanguageTag)
+
+      // A configured Gateway locale restarts the live session in that language.
+      manager.updateRecognitionLanguage("es_ES")
+      advanceUntilIdle()
+      assertEquals(2, recognizer.startCount)
+      assertEquals("es-ES", recognizer.lastLanguageTag)
+      assertEquals("es-ES", manager.recognitionLanguageTag)
+
+      // No on-device model for that locale: one retry (the recognizer may now know the
+      // installed packs), then keep listening in the device language.
+      recognizer.emit(VoiceWakeRecognitionEvent.Error(android.speech.SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE))
+      advanceTimeBy(100)
+      runCurrent()
+      assertEquals(3, recognizer.startCount)
+      assertEquals("es-ES", recognizer.lastLanguageTag)
+      recognizer.emit(VoiceWakeRecognitionEvent.Error(android.speech.SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE))
+      advanceTimeBy(100)
+      runCurrent()
+      assertEquals(4, recognizer.startCount)
+      assertEquals(deviceTag, recognizer.lastLanguageTag)
+      recognizer.emit(VoiceWakeRecognitionEvent.Ready)
+      assertEquals("Listening (device language)", manager.statusText.value)
+
+      // A pack installed later is picked up: the configured locale is retried on a timer.
+      advanceTimeBy(60_100)
+      runCurrent()
+      assertEquals(5, recognizer.startCount)
+      assertEquals("es-ES", recognizer.lastLanguageTag)
+
+      // Leaving the Gateway returns to the device locale without a redundant restart when unchanged.
+      manager.updateRecognitionLanguage(null)
+      advanceUntilIdle()
+      assertEquals(deviceTag, manager.recognitionLanguageTag)
+    }
+
   private fun kotlinx.coroutines.test.TestScope.manager(
     recognizer: FakeVoiceWakeRecognizer,
     hasPermission: () -> Boolean = { true },
@@ -291,6 +337,7 @@ class VoiceWakeManagerTest {
       initialTriggerWords = listOf("openclaw"),
       onCommand = onCommand,
       restartDelayMs = 1,
+      languageRetryDelayMs = 60_000,
       hasRecordAudioPermission = hasPermission,
     )
 
@@ -302,13 +349,16 @@ class VoiceWakeManagerTest {
     var stopCount = 0
     var destroyCount = 0
     var stopCallbackCompleted = false
+    var lastLanguageTag: String? = null
     private var onEvent: ((VoiceWakeRecognitionEvent) -> Unit)? = null
 
     override fun start(
       operationId: Long,
+      languageTag: String,
       onEvent: (VoiceWakeRecognitionEvent) -> Unit,
     ) {
       startCount += 1
+      lastLanguageTag = languageTag
       this.onEvent = onEvent
     }
 

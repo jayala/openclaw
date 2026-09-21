@@ -994,6 +994,12 @@ class TalkModeManager internal constructor(
     ensureConfigLoaded()
   }
 
+  /** The Gateway's `talk.speechLocale`, or null when unset; shared with wake-word recognition. */
+  suspend fun speechLocaleTagOrNull(): String? {
+    ensureConfigLoaded()
+    return speechLocale
+  }
+
   internal suspend fun resolveRealtimeLanguageHint(requestedLanguage: String?): String? {
     ensureConfigLoaded()
     return resolveRealtimeTranscriptionLanguageHint(

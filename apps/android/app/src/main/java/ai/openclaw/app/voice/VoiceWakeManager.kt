@@ -18,6 +18,8 @@ import android.os.Looper
 import android.os.ParcelFileDescriptor
 import android.os.SystemClock
 import android.speech.RecognitionListener
+import android.speech.RecognitionSupport
+import android.speech.RecognitionSupportCallback
 import android.speech.RecognizerIntent
 import android.speech.SpeechRecognizer
 import android.util.Log
@@ -57,6 +59,7 @@ internal interface VoiceWakeRecognizer {
 
   fun start(
     operationId: Long,
+    languageTag: String,
     onEvent: (VoiceWakeRecognitionEvent) -> Unit,
   )
 
@@ -109,8 +112,13 @@ internal class AndroidOnDeviceVoiceWakeRecognizer(
   private var sessionDeliveredResults = false
   private var audioSource: WakeAudioSource? = null
 
+  // Installed on-device language packs, learned once from the recognition service. A configured
+  // locale such as es-ES then maps onto the installed es-US pack instead of failing.
+  private var installedOnDeviceLanguages: List<String>? = null
+
   override fun start(
     operationId: Long,
+    languageTag: String,
     onEvent: (VoiceWakeRecognitionEvent) -> Unit,
   ) {
     if (!claimOperation(operationId)) return
@@ -137,7 +145,11 @@ internal class AndroidOnDeviceVoiceWakeRecognizer(
         val active = createRecognizer(session, mode)
         recognitionSession = session
         recognizer = active
-        startListening(active, session, operationId, mode)
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && installedOnDeviceLanguages == null) {
+          probeInstalledLanguagesThenStart(active, session, operationId, mode, languageTag)
+        } else {
+          startListening(active, session, operationId, mode, languageTag)
+        }
       } catch (_: Throwable) {
         session.retire()
         retireRecognizer()
@@ -214,6 +226,10 @@ internal class AndroidOnDeviceVoiceWakeRecognizer(
 
           override fun onError(error: Int) {
             Log.d(TAG, "error code=$error")
+            if (error == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE || error == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED) {
+              // The user may install the pack later; probe again before the next attempt.
+              installedOnDeviceLanguages = null
+            }
             noteSessionClosed(mode, error)
             session.emit(VoiceWakeRecognitionEvent.Error(error))
           }
@@ -279,15 +295,76 @@ internal class AndroidOnDeviceVoiceWakeRecognizer(
     session: VoiceWakeRecognitionSession,
     operationId: Long,
     mode: SessionMode,
+    requestedLanguageTag: String,
   ) {
     if (operationId != latestOperationId.get() || recognizer !== active) return
+    val languageTag = resolveInstalledLanguageTag(requestedLanguageTag)
     sessionStartedAtMs = SystemClock.elapsedRealtime()
     sessionDeliveredResults = false
-    val intent = recognizerIntent(mode)
-    Log.d(TAG, "start mode=$mode")
+    val intent = recognizerIntent(mode, languageTag)
+    Log.d(TAG, "start language=$languageTag (requested $requestedLanguageTag) mode=$mode")
     active.startListening(intent)
     // With app-supplied audio the service does not report readiness for speech; we own the mic.
     if (mode == SessionMode.RawAudio) session.emit(VoiceWakeRecognitionEvent.Ready)
+  }
+
+  @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+  private fun probeInstalledLanguagesThenStart(
+    active: SpeechRecognizer,
+    session: VoiceWakeRecognitionSession,
+    operationId: Long,
+    mode: SessionMode,
+    languageTag: String,
+  ) {
+    var started = false
+    val startOnce = {
+      if (!started) {
+        started = true
+        try {
+          startListening(active, session, operationId, mode, languageTag)
+        } catch (err: Throwable) {
+          Log.d(TAG, "start after support probe failed: ${err.message}")
+          retireRecognizer()
+          if (operationId == latestOperationId.get()) session.emit(VoiceWakeRecognitionEvent.Error(SpeechRecognizer.ERROR_CLIENT))
+        }
+      }
+    }
+    // The service normally answers within a few milliseconds; never hold the mic hostage to it.
+    mainHandler.postDelayed(startOnce, SUPPORT_PROBE_TIMEOUT_MS)
+    try {
+      active.checkRecognitionSupport(
+        recognizerIntent(SessionMode.Single, languageTag),
+        ContextCompat.getMainExecutor(appContext),
+        object : RecognitionSupportCallback {
+          override fun onSupportResult(recognitionSupport: RecognitionSupport) {
+            installedOnDeviceLanguages = recognitionSupport.installedOnDeviceLanguages
+            Log.d(TAG, "installed on-device languages: ${recognitionSupport.installedOnDeviceLanguages}")
+            mainHandler.removeCallbacks(startOnce)
+            startOnce()
+          }
+
+          override fun onError(error: Int) {
+            Log.d(TAG, "recognition support probe failed code=$error")
+            installedOnDeviceLanguages = emptyList()
+            mainHandler.removeCallbacks(startOnce)
+            startOnce()
+          }
+        },
+      )
+    } catch (_: Throwable) {
+      installedOnDeviceLanguages = emptyList()
+      mainHandler.removeCallbacks(startOnce)
+      startOnce()
+    }
+  }
+
+  /** Exact installed pack first, then any installed pack of the same language, else the request as-is. */
+  private fun resolveInstalledLanguageTag(requested: String): String {
+    val installed = installedOnDeviceLanguages?.takeIf { it.isNotEmpty() } ?: return requested
+    installed.firstOrNull { it.equals(requested, ignoreCase = true) }?.let { return it }
+    val language = Locale.forLanguageTag(requested).language
+    if (language.isBlank()) return requested
+    return installed.firstOrNull { Locale.forLanguageTag(it).language.equals(language, ignoreCase = true) } ?: requested
   }
 
   private fun noteSessionClosed(
@@ -308,10 +385,13 @@ internal class AndroidOnDeviceVoiceWakeRecognizer(
     }
   }
 
-  private fun recognizerIntent(mode: SessionMode): Intent =
+  private fun recognizerIntent(
+    mode: SessionMode,
+    languageTag: String,
+  ): Intent =
     Intent(RecognizerIntent.ACTION_RECOGNIZE_SPEECH).apply {
       putExtra(RecognizerIntent.EXTRA_LANGUAGE_MODEL, RecognizerIntent.LANGUAGE_MODEL_FREE_FORM)
-      putExtra(RecognizerIntent.EXTRA_LANGUAGE, Locale.getDefault().toLanguageTag())
+      putExtra(RecognizerIntent.EXTRA_LANGUAGE, languageTag)
       putExtra(RecognizerIntent.EXTRA_PARTIAL_RESULTS, true)
       putExtra(RecognizerIntent.EXTRA_PREFER_OFFLINE, true)
       putExtra(RecognizerIntent.EXTRA_MAX_RESULTS, 3)
@@ -357,6 +437,7 @@ internal class AndroidOnDeviceVoiceWakeRecognizer(
   private companion object {
     const val TAG = "VoiceWake"
     const val SESSION_MIN_LIFETIME_MS = 1_500L
+    const val SUPPORT_PROBE_TIMEOUT_MS = 600L
     const val WAKE_AUDIO_SAMPLE_RATE_HZ = 16_000
   }
 }
@@ -458,6 +539,7 @@ internal class VoiceWakeManager(
   initialTriggerWords: List<String>,
   private val onCommand: suspend (VoiceWakeMatch) -> Boolean,
   private val restartDelayMs: Long = 350L,
+  private val languageRetryDelayMs: Long = 10 * 60_000L,
   private val hasRecordAudioPermission: () -> Boolean = {
     ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED
   },
@@ -468,6 +550,7 @@ internal class VoiceWakeManager(
     data class Start(
       override val operationId: Long,
       val sessionGeneration: Long,
+      val languageTag: String,
     ) : RecognizerAction
 
     data class Stop(
@@ -483,6 +566,10 @@ internal class VoiceWakeManager(
   private var enabled = false
   private var foreground = false
   private var backgroundListeningAllowed = false
+  private var configuredLanguageTag: String? = null
+  private var languageRetryUsed = false
+  private var languageFallbackToDevice = false
+  private var languageRetryJob: Job? = null
   private var sessionGeneration = 0L
   private var sessionActive = false
   private var commandInFlight = false
@@ -536,6 +623,35 @@ internal class VoiceWakeManager(
     performRecognizerAction(action)
   }
 
+  /**
+   * Selects the recognition language, normally the Gateway's `talk.speechLocale`. Null returns to
+   * the device locale. A running session restarts so the new language applies immediately.
+   */
+  fun updateRecognitionLanguage(languageTag: String?) {
+    val action =
+      synchronized(lock) {
+        val normalized = normalizeSpeechLocaleTag(languageTag)
+        if (normalized == configuredLanguageTag) return
+        configuredLanguageTag = normalized
+        languageRetryUsed = false
+        languageFallbackToDevice = false
+        languageRetryJob?.cancel()
+        languageRetryJob = null
+        if (!sessionActive || commandInFlight) return
+        sessionActive = false
+        _isListening.value = false
+        scheduleRestartLocked()
+        RecognizerAction.Stop(nextRecognizerOperationIdLocked())
+      }
+    performRecognizerAction(action)
+  }
+
+  /** Language tag the next recognition session uses. */
+  val recognitionLanguageTag: String
+    get() = synchronized(lock) { effectiveLanguageTagLocked() }
+
+  private fun effectiveLanguageTagLocked(): String = configuredLanguageTag?.takeUnless { languageFallbackToDevice } ?: Locale.getDefault().toLanguageTag()
+
   fun setSuppressed(
     reason: VoiceWakeSuppressionReason,
     suppressed: Boolean,
@@ -568,6 +684,8 @@ internal class VoiceWakeManager(
   fun shutdown() {
     val action =
       synchronized(lock) {
+        languageRetryJob?.cancel()
+        languageRetryJob = null
         enabled = false
         foreground = false
         val pendingAction = stopSessionLocked(destroy = true)
@@ -607,7 +725,7 @@ internal class VoiceWakeManager(
     sessionActive = true
     _isListening.value = false
     _statusText.value = nativeText("Starting…")
-    return RecognizerAction.Start(nextRecognizerOperationIdLocked(), generation)
+    return RecognizerAction.Start(nextRecognizerOperationIdLocked(), generation, effectiveLanguageTagLocked())
   }
 
   private fun handleRecognitionEvent(
@@ -620,7 +738,8 @@ internal class VoiceWakeManager(
         when (event) {
           VoiceWakeRecognitionEvent.Ready -> {
             _isListening.value = true
-            _statusText.value = nativeText("Listening")
+            _statusText.value =
+              if (languageFallbackToDevice) nativeText("Listening (device language)") else nativeText("Listening")
             null
           }
 
@@ -642,6 +761,21 @@ internal class VoiceWakeManager(
             _isListening.value = false
             if (event.code == SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS) {
               _statusText.value = nativeText("Microphone permission required")
+            } else if (
+              (event.code == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED || event.code == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE) &&
+              configuredLanguageTag != null &&
+              !languageFallbackToDevice &&
+              configuredLanguageTag != Locale.getDefault().toLanguageTag()
+            ) {
+              // The recognizer learns the installed packs on its first session, so give the
+              // configured locale one retry before settling for the device language.
+              if (languageRetryUsed) {
+                languageFallbackToDevice = true
+                scheduleConfiguredLanguageRetryLocked()
+              } else {
+                languageRetryUsed = true
+              }
+              scheduleRestartLocked()
             } else if (event.code == SpeechRecognizer.ERROR_LANGUAGE_NOT_SUPPORTED) {
               _statusText.value = nativeText("Device language not supported")
             } else if (event.code == SpeechRecognizer.ERROR_LANGUAGE_UNAVAILABLE) {
@@ -684,6 +818,28 @@ internal class VoiceWakeManager(
         }
       }
     return action
+  }
+
+  /** While listening in the device language, periodically try the configured locale again (a pack may have been installed). */
+  private fun scheduleConfiguredLanguageRetryLocked() {
+    languageRetryJob?.cancel()
+    languageRetryJob =
+      scope.launch {
+        delay(languageRetryDelayMs)
+        val action =
+          synchronized(lock) {
+            languageRetryJob = null
+            if (!languageFallbackToDevice) return@synchronized null
+            languageFallbackToDevice = false
+            languageRetryUsed = true
+            if (!sessionActive || commandInFlight) return@synchronized null
+            sessionActive = false
+            _isListening.value = false
+            scheduleRestartLocked()
+            RecognizerAction.Stop(nextRecognizerOperationIdLocked())
+          }
+        performRecognizerAction(action)
+      }
   }
 
   private fun scheduleRestartLocked(delayMs: Long = restartDelayMs) {
@@ -745,7 +901,7 @@ internal class VoiceWakeManager(
   private fun performRecognizerAction(action: RecognizerAction?) {
     when (action) {
       is RecognizerAction.Start -> {
-        recognizer.start(action.operationId) { event ->
+        recognizer.start(action.operationId, action.languageTag) { event ->
           handleRecognitionEvent(action.sessionGeneration, event)
         }
       }
@@ -768,6 +924,7 @@ internal class PreviewVoiceWakeRecognizer : VoiceWakeRecognizer {
 
   override fun start(
     operationId: Long,
+    languageTag: String,
     onEvent: (VoiceWakeRecognitionEvent) -> Unit,
   ) {
     onEvent(VoiceWakeRecognitionEvent.Ready)

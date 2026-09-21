@@ -458,7 +458,8 @@ Camera commands (foreground only; permission-gated): `camera.snap` (jpg), `camer
 - Gateway config changes refresh Android's cached Talk settings on the next use, without reconnecting or interrupting an active capture.
 - Android Talk uses realtime Gateway relay only when `talk.realtime.mode` is `realtime` and `talk.realtime.transport` is `gateway-relay`.
 - Enable **Settings → Voice → Listen for wake words** for on-device Voice Wake.
-  While enabled, the node foreground service adds the `microphone` service type
+  Recognition uses the Gateway's `talk.speechLocale`, falling back to the device
+  locale when it is unset or has no on-device speech model. While enabled, the node foreground service adds the `microphone` service type
   so listening continues after the app leaves the screen; Android grants that
   type only while an Activity is visible, so the service retries it on the next
   foreground visit if the grant was refused. The final reply to a wake-word
