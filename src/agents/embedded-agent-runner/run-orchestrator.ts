@@ -19,6 +19,7 @@ import {
 } from "../../infra/agent-events.js";
 import {
   buildHandledBeforeAgentReplyPayloads,
+  publishHandledBeforeAgentReplyText,
   runBeforeAgentReplyForTurn,
 } from "../../plugins/before-agent-reply.js";
 import {
@@ -512,6 +513,7 @@ async function runEmbeddedAgentInternal(
                   notifyExecutionPhase("runtime_plugins", { provider, model: modelId }),
               });
               if (hookResult?.handled) {
+                publishHandledBeforeAgentReplyText(hookCtx, hookResult.reply, onAgentEvent);
                 return {
                   payloads: buildHandledBeforeAgentReplyPayloads(hookResult.reply),
                   meta: {

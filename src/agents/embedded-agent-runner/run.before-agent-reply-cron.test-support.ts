@@ -71,6 +71,7 @@ describe("runEmbeddedAgent before_agent_reply seam", () => {
       reply: { text: "dreaming claimed" },
     });
     const onExecutionPhase = vi.fn();
+    const onAgentEvent = vi.fn();
 
     const result = await runEmbeddedAgent({
       ...createOverflowRunParams(state),
@@ -78,6 +79,7 @@ describe("runEmbeddedAgent before_agent_reply seam", () => {
       jobId: "cron-job-123",
       prompt: "__openclaw_memory_core_short_term_promotion_dream__",
       onExecutionPhase,
+      onAgentEvent,
     });
 
     expect(mockedGlobalHookRunner.runBeforeAgentReply).toHaveBeenCalledTimes(1);
@@ -99,6 +101,29 @@ describe("runEmbeddedAgent before_agent_reply seam", () => {
     expect(hookContext?.channel).toBeUndefined();
     expect(mockedRunEmbeddedAttempt).not.toHaveBeenCalled();
     expect(result.payloads?.[0]?.text).toBe("dreaming claimed");
+    // Chat subscribers build the final message from assistant deltas, so a claimed
+    // reply must be published as one or the run ends with an empty final event.
+    expect(onAgentEvent).toHaveBeenCalledWith({
+      stream: "assistant",
+      data: { text: "dreaming claimed", delta: "dreaming claimed" },
+    });
+  });
+
+  it("does not publish an assistant delta for a silent claimed reply", async () => {
+    mockedGlobalHookRunner.hasHooks.mockImplementation(
+      (hookName: string) => hookName === "before_agent_reply",
+    );
+    mockedGlobalHookRunner.runBeforeAgentReply.mockResolvedValue({ handled: true });
+    const onAgentEvent = vi.fn();
+
+    await runEmbeddedAgent({
+      ...createOverflowRunParams(state),
+      trigger: "cron",
+      onAgentEvent,
+    });
+
+    expect(mockedRunEmbeddedAttempt).not.toHaveBeenCalled();
+    expect(onAgentEvent).not.toHaveBeenCalledWith(expect.objectContaining({ stream: "assistant" }));
   });
 
   it("re-arms setup progress when a cron hook does not claim", async () => {

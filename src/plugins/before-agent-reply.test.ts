@@ -1,6 +1,9 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
+import { onAgentEvent, resetAgentEventsForTest } from "../infra/agent-events.js";
 import {
   buildHandledBeforeAgentReplyPayloads,
+  publishHandledBeforeAgentReplyText,
   runBeforeAgentReplyForTurn,
   withBeforeAgentReplyObserver,
 } from "./before-agent-reply.js";
@@ -91,5 +94,50 @@ describe("before_agent_reply runner boundary", () => {
     expect(hookRunner.runBeforeAgentReply).toHaveBeenCalledTimes(2);
     expect(beforeDispatch).toHaveBeenCalledOnce();
     expect(afterDispatch).toHaveBeenCalledOnce();
+  });
+});
+
+describe("publishHandledBeforeAgentReplyText", () => {
+  beforeEach(() => {
+    resetAgentEventsForTest();
+  });
+
+  it("publishes the claimed text as one assistant delta on the bus and the callback", () => {
+    const seen: Array<{ runId: string; stream: string; data: Record<string, unknown> }> = [];
+    const unsubscribe = onAgentEvent((evt) =>
+      seen.push({ runId: evt.runId, stream: evt.stream, data: evt.data }),
+    );
+    const callback = vi.fn();
+    try {
+      publishHandledBeforeAgentReplyText(
+        { runId: "run-1", sessionKey: "agent:main:main", agentId: "main" },
+        { text: "  Listo, apagado.  " },
+        callback,
+      );
+    } finally {
+      unsubscribe();
+    }
+
+    const data = { text: "Listo, apagado.", delta: "Listo, apagado." };
+    expect(seen).toEqual([{ runId: "run-1", stream: "assistant", data }]);
+    expect(callback).toHaveBeenCalledWith({ stream: "assistant", data });
+  });
+
+  it.each([
+    ["a silent reply", { text: SILENT_REPLY_TOKEN }],
+    ["an empty reply", { text: "   " }],
+    ["a missing reply", undefined],
+  ])("publishes nothing for %s", (_label, reply) => {
+    const listener = vi.fn();
+    const unsubscribe = onAgentEvent(listener);
+    const callback = vi.fn();
+    try {
+      publishHandledBeforeAgentReplyText({ runId: "run-2" }, reply, callback);
+    } finally {
+      unsubscribe();
+    }
+
+    expect(listener).not.toHaveBeenCalled();
+    expect(callback).not.toHaveBeenCalled();
   });
 });

@@ -1,7 +1,7 @@
 import { AsyncLocalStorage } from "node:async_hooks";
 import type { ReplyPayload } from "../auto-reply/reply-payload.js";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
-import { runOncePerAgentRun } from "../infra/agent-events.js";
+import { emitAgentEvent, runOncePerAgentRun } from "../infra/agent-events.js";
 import { resolveGlobalSingleton } from "../shared/global-singleton.js";
 import { getGlobalHookRunner } from "./hook-runner-global.js";
 import type {
@@ -37,6 +37,31 @@ export function withBeforeAgentReplyObserver<T>(
 /** Preserves the full plugin reply contract, including private payload metadata. */
 export function buildHandledBeforeAgentReplyPayloads(reply?: ReplyPayload): ReplyPayload[] {
   return [reply ?? { text: SILENT_REPLY_TOKEN }];
+}
+
+/**
+ * Publishes a claimed reply as one assistant delta. Claimed replies never stream
+ * through the model, so without this chat subscribers (Control UI, nodes that
+ * speak the answer) receive a final event with no message text.
+ */
+export function publishHandledBeforeAgentReplyText(
+  context: Pick<PluginHookAgentContext, "runId" | "sessionKey" | "agentId">,
+  reply: ReplyPayload | undefined,
+  onAgentEvent?: (event: { stream: "assistant"; data: Record<string, unknown> }) => unknown,
+): void {
+  const text = reply?.text?.trim() ?? "";
+  if (!context.runId || !text || text === SILENT_REPLY_TOKEN) {
+    return;
+  }
+  const data = { text, delta: text };
+  emitAgentEvent({
+    runId: context.runId,
+    sessionKey: context.sessionKey,
+    agentId: context.agentId,
+    stream: "assistant",
+    data,
+  });
+  onAgentEvent?.({ stream: "assistant", data });
 }
 
 /** Runs the reply claim hook once for one admitted turn, across model fallbacks. */
