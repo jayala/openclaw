@@ -60,6 +60,8 @@ Limits: at most 32 routes, trigger text at most 64 characters. Route triggers ar
 
 Both broadcast to every WebSocket client with read scope (macOS app, WebChat, and similar) and to every connected node. A node also gets both as an initial snapshot push right after it connects.
 
+A node sends each recognized command as a `voice.transcript` node event. The Gateway runs it on the target session with `low` thinking, unless the agent that owns the session sets `agents.entries.<id>.thinkingDefault`, in which case that level applies (for example `off` for a dedicated fast voice agent).
+
 ## Client behavior
 
 - **macOS**: calls `voicewake.set`/`voicewake.get` and listens for `voicewake.changed` to stay in sync with other clients.

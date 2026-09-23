@@ -843,6 +843,37 @@ describe("voice transcript events", () => {
     expect(upsertSessionEntryMock).toHaveBeenCalledTimes(1);
   });
 
+  it("uses low thinking unless the answering agent configures its own default", async () => {
+    const ctx = buildCtx();
+    await handleNodeEvent(ctx, "node-voice-thinking", {
+      event: "voice.transcript",
+      payloadJSON: JSON.stringify({ text: "lights off", sessionKey: "agent:main:voice-low" }),
+    });
+    await waitForFast(() => expect(agentCommandMock).toHaveBeenCalledTimes(1));
+    const baseConfig = loadConfigMock();
+    loadConfigMock.mockReturnValue({
+      ...baseConfig,
+      // The fixture resolves every session to the "main" agent.
+      agents: { entries: { main: { thinkingDefault: "off" } } },
+    });
+    try {
+      await handleNodeEvent(ctx, "node-voice-thinking", {
+        event: "voice.transcript",
+        payloadJSON: JSON.stringify({ text: "lights on", sessionKey: "agent:main:voice-own" }),
+      });
+      await waitForFast(() => expect(agentCommandMock).toHaveBeenCalledTimes(2));
+    } finally {
+      loadConfigMock.mockReturnValue(baseConfig);
+    }
+    const [lowRun, ownRun] = agentCommandMock.mock.calls.map(
+      ([opts]) => opts as { message?: string; thinking?: string },
+    );
+    expect(lowRun).toMatchObject({ message: "lights off", thinking: "low" });
+    // The agent command falls back to the agent's thinkingDefault when none is sent.
+    expect(ownRun?.message).toBe("lights on");
+    expect(ownRun?.thinking).toBeUndefined();
+  });
+
   it("persists only the accepted replay session ID when identical new-session events race", async () => {
     const addChatRun = vi.fn();
     const ctx = buildCtx();

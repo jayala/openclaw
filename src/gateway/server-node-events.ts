@@ -12,7 +12,7 @@ import {
   validateNodePresenceActivityPayload,
 } from "../../packages/gateway-protocol/src/index.js";
 import { DesktopAvailabilitySchema } from "../../packages/gateway-protocol/src/schema/environments.js";
-import { resolveSessionAgentId } from "../agents/agent-scope.js";
+import { resolveAgentConfig, resolveSessionAgentId } from "../agents/agent-scope.js";
 import { sendDurableMessageBatchCore } from "../channels/message/runtime.js";
 import { normalizeChannelId } from "../channels/plugins/index.js";
 import { createOutboundSendDeps } from "../cli/outbound-send-deps.js";
@@ -572,6 +572,12 @@ export const handleNodeEvent = async (
         return undefined;
       }
       const receivedAt = Date.now();
+      // Spoken commands default to low thinking for latency; an agent that sets its own
+      // thinkingDefault (for example a dedicated voice agent with thinking off) owns the level.
+      const voiceAgentId = resolveSessionAgentId({ sessionKey: canonicalKey, config: cfg });
+      const voiceThinking = resolveAgentConfig(cfg, voiceAgentId)?.thinkingDefault
+        ? undefined
+        : "low";
       const fingerprint = resolveVoiceTranscriptFingerprint(obj, text);
       const sessionId = entry?.sessionId ?? randomUUID();
       const runId = randomUUID();
@@ -589,7 +595,7 @@ export const handleNodeEvent = async (
           message: text,
           sessionId,
           sessionKey: canonicalKey,
-          thinking: "low",
+          thinking: voiceThinking,
           deliver: false,
           messageChannel: "node",
           inputProvenance: {
