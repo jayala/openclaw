@@ -1000,6 +1000,7 @@
     <string name="native_88e0c9e9615456f9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"कोई हाइलाइट किया गया आइटम नहीं"</string>
     <string name="native_88e6e8384a7fc7ff" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"सत्र का लक्ष्य"</string>
     <string name="native_893a3e37d71c4563" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway ने अस्वीकृति दर्ज की."</string>
+    <string name="native_898d41c821ee7e35" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Play command sounds"</string>
     <string name="native_8998824610d49175" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"OpenClaw से कुछ भी पूछें"</string>
     <string name="native_89bbfe23c3917a3f" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"जारी रखने के लिए फिर से कनेक्ट करें"</string>
     <string name="native_8a20f46d5276b474" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s युग्मित"</string>
@@ -1784,6 +1785,7 @@
     <string name="native_f616dfac9815faea" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway पर %1$s कॉन्फ़िगर करें"</string>
     <string name="native_f61d0c645f00a4ed" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"QR कोड स्कैन करें या अपने OpenClaw Gateway के सेटअप कोड का उपयोग करें."</string>
     <string name="native_f6323e4e7ef2eea2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"डिज़ाइन सिस्टम प्रोटोटाइप"</string>
+    <string name="native_f6733f38b6ebc05b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"A short tone when a command is sent, a low tone if it fails."</string>
     <string name="native_f6b21a4dbcd8e593" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"छँटाई जारी है"</string>
     <string name="native_f6d2b1ae590eb212" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">" · बातचीत: चालू"</string>
     <string name="native_f6e82c3f136a6c5b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"अभी तक उपयोग का कोई डेटा नहीं है."</string>

@@ -1000,6 +1000,7 @@
     <string name="native_88e0c9e9615456f9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"No hay elementos destacados"</string>
     <string name="native_88e6e8384a7fc7ff" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Destino de la sesión"</string>
     <string name="native_893a3e37d71c4563" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"El Gateway registró una denegación."</string>
+    <string name="native_898d41c821ee7e35" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Play command sounds"</string>
     <string name="native_8998824610d49175" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Pregúntale cualquier cosa a OpenClaw"</string>
     <string name="native_89bbfe23c3917a3f" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Vuelve a conectar para continuar"</string>
     <string name="native_8a20f46d5276b474" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s emparejados"</string>
@@ -1784,6 +1785,7 @@
     <string name="native_f616dfac9815faea" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Configura %1$s en el Gateway"</string>
     <string name="native_f61d0c645f00a4ed" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Escanea un código QR o usa el código de configuración de tu OpenClaw Gateway."</string>
     <string name="native_f6323e4e7ef2eea2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Prototipo del sistema de diseño"</string>
+    <string name="native_f6733f38b6ebc05b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"A short tone when a command is sent, a low tone if it fails."</string>
     <string name="native_f6b21a4dbcd8e593" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Filtrando"</string>
     <string name="native_f6d2b1ae590eb212" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">" · Conversación: Activada"</string>
     <string name="native_f6e82c3f136a6c5b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Aún no hay datos de uso."</string>

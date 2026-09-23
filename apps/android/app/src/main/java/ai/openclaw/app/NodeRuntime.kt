@@ -119,10 +119,14 @@ import ai.openclaw.app.voice.TalkAudioPlayer
 import ai.openclaw.app.voice.TalkModeManager
 import ai.openclaw.app.voice.TalkPttOnceStart
 import ai.openclaw.app.voice.TalkPttStopPayload
+import ai.openclaw.app.voice.ToneVoiceWakeEarconPlayer
 import ai.openclaw.app.voice.VoiceConversationRole
+import ai.openclaw.app.voice.VoiceWakeEarcon
+import ai.openclaw.app.voice.VoiceWakeEarconPlayer
 import ai.openclaw.app.voice.VoiceWakeManager
 import ai.openclaw.app.voice.VoiceWakeMatch
 import ai.openclaw.app.voice.VoiceWakePreferences
+import ai.openclaw.app.voice.VoiceWakeReplyOutcome
 import ai.openclaw.app.voice.VoiceWakeReplyTracker
 import ai.openclaw.app.voice.VoiceWakeSuppressionReason
 import ai.openclaw.app.wear.WearProxyAgent
@@ -1168,6 +1172,7 @@ class NodeRuntime private constructor(
   val voiceWakeAvailable: StateFlow<Boolean> = MutableStateFlow(voiceWakeManager.isAvailable).asStateFlow()
   val voiceWakeEnabled: StateFlow<Boolean> = prefs.voiceWakeEnabled
   val voiceWakeAgentId: StateFlow<String?> = prefs.voiceWakeAgentId
+  val voiceWakeEarconsEnabled: StateFlow<Boolean> = prefs.voiceWakeEarconsEnabled
   val voiceWakeWords: StateFlow<List<String>> = prefs.voiceWakeWords
   val voiceWakeIsListening: StateFlow<Boolean> = voiceWakeManager.isListening
   val voiceWakeStatusText: StateFlow<String> = voiceWakeManager.statusText
@@ -1185,6 +1190,14 @@ class NodeRuntime private constructor(
   /** True while the node foreground service should hold the microphone type for wake-word listening. */
   val voiceWakeBackgroundCaptureRequested: StateFlow<Boolean> = _voiceWakeBackgroundCaptureRequested.asStateFlow()
   private val voiceWakeReplyTracker = VoiceWakeReplyTracker()
+  private var voiceWakeReplyTimeoutJob: Job? = null
+
+  /** Plays the wake-command earcons; replaced in tests to observe them without audio. */
+  @Volatile internal var voiceWakeEarconPlayer: VoiceWakeEarconPlayer =
+    when (mode) {
+      NodeRuntimeMode.Live -> ToneVoiceWakeEarconPlayer()
+      NodeRuntimeMode.ScreenshotFixture -> VoiceWakeEarconPlayer {}
+    }
 
   private val externalAudioCaptureActive = MutableStateFlow(false)
   private val _voiceCaptureMode = MutableStateFlow(VoiceCaptureMode.Off)
@@ -4373,6 +4386,10 @@ class NodeRuntime private constructor(
     refreshVoiceWakeCapabilitySurfaceIfChanged()
   }
 
+  fun setVoiceWakeEarconsEnabled(value: Boolean) {
+    prefs.setVoiceWakeEarconsEnabled(value)
+  }
+
   /** Null sends wake-word commands to the Chat session; an agent id gives them a device-scoped session on that agent. */
   fun setVoiceWakeAgentId(agentId: String?) {
     prefs.setVoiceWakeAgentId(agentId)
@@ -5673,6 +5690,7 @@ class NodeRuntime private constructor(
     if (retireRunState) updateGatewayDefaultAgentId(null)
     invalidateVoiceWakeWordsForGateway()
     voiceWakeReplyTracker.clear()
+    voiceWakeReplyTimeoutJob?.cancel()
     voiceWakeManager.updateRecognitionLanguage(null)
     chat.onGatewayScopeChanging(retireRunState)
     stopMessageSpeech()
@@ -6286,10 +6304,13 @@ class NodeRuntime private constructor(
         ?.let(VoiceWakePreferences::sanitizeTriggerWords)
     }.getOrNull()
 
-  private suspend fun sendVoiceWakeCommand(match: VoiceWakeMatch): Boolean {
-    val gatewayId = connectedEndpoint?.stableId ?: return false
-    if (!isVoiceWakeWordsReadyFor(gatewayId)) return false
-    if (!_nodeConnected.value) return false
+  internal suspend fun sendVoiceWakeCommand(match: VoiceWakeMatch): Boolean {
+    val gatewayId = connectedEndpoint?.stableId
+    if (gatewayId == null || !isVoiceWakeWordsReadyFor(gatewayId) || !_nodeConnected.value) {
+      playVoiceWakeEarcon(VoiceWakeEarcon.Failed)
+      return false
+    }
+    playVoiceWakeEarcon(VoiceWakeEarcon.Acknowledged)
     val sessionKey =
       resolveVoiceWakeSessionKey(
         deviceId = identityStore.loadOrCreate().deviceId,
@@ -6303,21 +6324,53 @@ class NodeRuntime private constructor(
         put("sessionKey", JsonPrimitive(sessionKey))
       }
     // Arm before sending so the first chat event of the answering run cannot slip past.
-    voiceWakeReplyTracker.arm(sessionKey = sessionKey, nowMs = SystemClock.elapsedRealtime())
+    val replyToken = voiceWakeReplyTracker.arm(sessionKey = sessionKey, nowMs = SystemClock.elapsedRealtime())
     val delivered =
       nodeSession.sendNodeEventForEndpoint(
         expectedEndpointStableId = gatewayId,
         event = "voice.transcript",
         payloadJson = payload.toString(),
       )
-    if (!delivered) voiceWakeReplyTracker.clear()
-    return delivered
+    if (!delivered) {
+      voiceWakeReplyTracker.clear()
+      playVoiceWakeEarcon(VoiceWakeEarcon.Failed)
+      return false
+    }
+    // A run that never reaches a terminal chat event would otherwise leave the user in silence.
+    voiceWakeReplyTimeoutJob?.cancel()
+    voiceWakeReplyTimeoutJob =
+      scope.launch {
+        delay(VoiceWakeReplyTracker.DEFAULT_TIMEOUT_MS)
+        if (voiceWakeReplyTracker.expire(replyToken)) playVoiceWakeEarcon(VoiceWakeEarcon.Failed)
+      }
+    return true
+  }
+
+  private fun playVoiceWakeEarcon(earcon: VoiceWakeEarcon) {
+    if (!prefs.voiceWakeEarconsEnabled.value || !prefs.speakerEnabled.value) return
+    try {
+      voiceWakeEarconPlayer.play(earcon)
+    } catch (err: RuntimeException) {
+      Log.w("OpenClawRuntime", "voice wake earcon failed: ${err.message ?: err::class.java.simpleName}")
+    }
   }
 
   private fun handleVoiceWakeReplyChatEvent(payloadJson: String?) {
     if (payloadJson.isNullOrBlank()) return
     val payload = runCatching { json.parseToJsonElement(payloadJson).asObjectOrNull() }.getOrNull() ?: return
-    val text = voiceWakeReplyTracker.onChatEvent(payload, nowMs = SystemClock.elapsedRealtime()) ?: return
+    val outcome = voiceWakeReplyTracker.onChatEvent(payload, nowMs = SystemClock.elapsedRealtime()) ?: return
+    voiceWakeReplyTimeoutJob?.cancel()
+    val text =
+      when (outcome) {
+        is VoiceWakeReplyOutcome.Reply -> {
+          outcome.text
+        }
+
+        VoiceWakeReplyOutcome.Failed -> {
+          playVoiceWakeEarcon(VoiceWakeEarcon.Failed)
+          return
+        }
+      }
     // Talk mode already speaks every final reply on its own.
     if (_voiceCaptureMode.value == VoiceCaptureMode.TalkMode) return
     scope.launch {
@@ -6327,6 +6380,7 @@ class NodeRuntime private constructor(
         throw err
       } catch (err: Throwable) {
         Log.w("OpenClawRuntime", "voice wake reply speech failed: ${err.message ?: err::class.java.simpleName}")
+        playVoiceWakeEarcon(VoiceWakeEarcon.Failed)
       }
     }
   }

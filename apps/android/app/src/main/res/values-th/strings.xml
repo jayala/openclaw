@@ -1000,6 +1000,7 @@
     <string name="native_88e0c9e9615456f9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ไม่มีรายการที่ไฮไลต์"</string>
     <string name="native_88e6e8384a7fc7ff" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"เป้าหมายเซสชัน"</string>
     <string name="native_893a3e37d71c4563" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway บันทึกการปฏิเสธแล้ว"</string>
+    <string name="native_898d41c821ee7e35" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Play command sounds"</string>
     <string name="native_8998824610d49175" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ถาม OpenClaw ได้ทุกเรื่อง"</string>
     <string name="native_89bbfe23c3917a3f" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"เชื่อมต่ออีกครั้งเพื่อดำเนินการต่อ"</string>
     <string name="native_8a20f46d5276b474" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"จับคู่แล้ว %1$s เครื่อง"</string>
@@ -1784,6 +1785,7 @@
     <string name="native_f616dfac9815faea" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"กำหนดค่า %1$s บน Gateway"</string>
     <string name="native_f61d0c645f00a4ed" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"สแกนคิวอาร์โค้ดหรือใช้รหัสตั้งค่าจาก OpenClaw Gateway ของคุณ"</string>
     <string name="native_f6323e4e7ef2eea2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ต้นแบบระบบการออกแบบ"</string>
+    <string name="native_f6733f38b6ebc05b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"A short tone when a command is sent, a low tone if it fails."</string>
     <string name="native_f6b21a4dbcd8e593" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"กำลังคัดกรอง"</string>
     <string name="native_f6d2b1ae590eb212" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">" · สนทนา: เปิด"</string>
     <string name="native_f6e82c3f136a6c5b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"ยังไม่มีข้อมูลการใช้งาน"</string>

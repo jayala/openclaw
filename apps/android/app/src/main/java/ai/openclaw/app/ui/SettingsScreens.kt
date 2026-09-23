@@ -702,6 +702,7 @@ private fun VoiceSettingsScreen(
   val voiceWakeWordsSaving by viewModel.voiceWakeWordsSaving.collectAsState()
   val voiceWakeWordsNoticeText by viewModel.voiceWakeWordsNoticeText.collectAsState()
   val voiceWakeAgentId by viewModel.voiceWakeAgentId.collectAsState()
+  val voiceWakeEarconsEnabled by viewModel.voiceWakeEarconsEnabled.collectAsState()
   val gatewayAgents by viewModel.gatewayAgents.collectAsState()
   var wakeWordDrafts by remember(voiceWakeWords) {
     mutableStateOf(voiceWakeWords)
@@ -754,6 +755,14 @@ private fun VoiceSettingsScreen(
               checked = voiceWakeEnabled,
               onCheckedChange = ::setVoiceWake,
               enabled = voiceWakeAvailable || voiceWakeEnabled,
+            ),
+            SettingsToggleRow(
+              title = nativeString("Play command sounds"),
+              subtitle = nativeString("A short tone when a command is sent, a low tone if it fails."),
+              icon = Icons.AutoMirrored.Filled.VolumeUp,
+              checked = voiceWakeEarconsEnabled,
+              onCheckedChange = viewModel::setVoiceWakeEarconsEnabled,
+              enabled = voiceWakeEnabled,
             ),
           ),
       )

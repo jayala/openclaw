@@ -464,6 +464,8 @@ Camera commands (foreground only; permission-gated): `camera.snap` (jpg), `camer
   type only while an Activity is visible, so the service retries it on the next
   foreground visit if the grant was refused. The final reply to a wake-word
   command is spoken through the Talk voice when the speaker is on.
+  **Play command sounds** adds a short tone when a command is sent and a low
+  tone when it fails or gets no answer within 90 seconds.
   **Settings → Voice → Wake Word Agent** sends wake-word commands to another
   Gateway agent in a device-scoped session (`agent:<id>:node-<device>`), for
   example one with a faster model, while Chat keeps its own agent. Android

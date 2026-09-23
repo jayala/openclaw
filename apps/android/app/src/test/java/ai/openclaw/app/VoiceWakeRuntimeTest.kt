@@ -2,6 +2,8 @@ package ai.openclaw.app
 
 import ai.openclaw.app.gateway.GatewayEndpoint
 import ai.openclaw.app.voice.TalkModeManager
+import ai.openclaw.app.voice.VoiceWakeEarcon
+import ai.openclaw.app.voice.VoiceWakeMatch
 import android.Manifest
 import android.content.Context
 import android.os.Looper
@@ -58,6 +60,47 @@ class VoiceWakeRuntimeTest {
     runtime.setVoiceWakeAgentId("   ")
     assertNull(runtime.voiceWakeAgentId.value)
   }
+
+  @Test
+  fun wakeCommandWithoutGatewayPlaysOnlyTheFailureEarcon() =
+    runBlocking {
+      val runtime = createTestRuntime()
+      val earcons = recordEarcons(runtime)
+
+      assertFalse(runtime.sendVoiceWakeCommand(VoiceWakeMatch(trigger = "openclaw", command = "lights off")))
+
+      assertEquals(listOf(VoiceWakeEarcon.Failed), earcons)
+    }
+
+  @Test
+  fun undeliveredWakeCommandAcknowledgesThenFails() =
+    runBlocking {
+      val runtime = createTestRuntime()
+      seedConnectedRuntime(runtime)
+      readField<MutableStateFlow<Boolean>>(runtime, "_nodeConnected").value = true
+      val earcons = recordEarcons(runtime)
+
+      // No node socket is open, so the transcript cannot be delivered after the acknowledgement.
+      assertFalse(runtime.sendVoiceWakeCommand(VoiceWakeMatch(trigger = "openclaw", command = "lights off")))
+
+      assertEquals(listOf(VoiceWakeEarcon.Acknowledged, VoiceWakeEarcon.Failed), earcons)
+    }
+
+  @Test
+  fun earconsFollowTheirToggleAndTheSpeakerMute() =
+    runBlocking {
+      val runtime = createTestRuntime()
+      val earcons = recordEarcons(runtime)
+      val match = VoiceWakeMatch(trigger = "openclaw", command = "lights off")
+
+      runtime.setVoiceWakeEarconsEnabled(false)
+      runtime.sendVoiceWakeCommand(match)
+      runtime.setVoiceWakeEarconsEnabled(true)
+      runtime.prefs.setSpeakerEnabled(false)
+      runtime.sendVoiceWakeCommand(match)
+
+      assertEquals(emptyList<VoiceWakeEarcon>(), earcons)
+    }
 
   @Test
   fun successfulSaveCommitsGatewayCanonicalWords() =
@@ -292,6 +335,12 @@ class VoiceWakeRuntimeTest {
         Context.MODE_PRIVATE,
       )
     return NodeRuntime(app, SecurePrefs(app, securePrefsOverride = securePrefs)).also { runtimeUnderTest = it }
+  }
+
+  private fun recordEarcons(runtime: NodeRuntime): MutableList<VoiceWakeEarcon> {
+    val played = mutableListOf<VoiceWakeEarcon>()
+    runtime.voiceWakeEarconPlayer = { earcon -> played += earcon }
+    return played
   }
 
   private fun seedConnectedRuntime(runtime: NodeRuntime): GatewayEndpoint {

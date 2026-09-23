@@ -3,7 +3,9 @@ package ai.openclaw.app.voice
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class VoiceWakeReplyTrackerTest {
@@ -14,7 +16,7 @@ class VoiceWakeReplyTrackerTest {
 
     assertNull(tracker.onChatEvent(chatEvent(runId = "run-1", state = "delta", text = "Hel"), nowMs = 1_100))
     assertEquals(
-      "Hello there",
+      VoiceWakeReplyOutcome.Reply("Hello there"),
       tracker.onChatEvent(chatEvent(runId = "run-1", state = "final", text = "Hello there"), nowMs = 1_200),
     )
     // The reply was consumed; a later run on the same session stays silent.
@@ -31,18 +33,57 @@ class VoiceWakeReplyTrackerTest {
     )
     assertNull(tracker.onChatEvent(chatEvent(runId = "run-1", state = "delta", text = "H"), nowMs = 20))
     assertNull(tracker.onChatEvent(chatEvent(runId = "run-2", state = "final", text = "Concurrent"), nowMs = 30))
-    assertEquals("Done", tracker.onChatEvent(chatEvent(runId = "run-1", state = "final", text = "Done"), nowMs = 40))
+    assertEquals(
+      VoiceWakeReplyOutcome.Reply("Done"),
+      tracker.onChatEvent(chatEvent(runId = "run-1", state = "final", text = "Done"), nowMs = 40),
+    )
   }
 
   @Test
-  fun abortedRunAndTimeoutStopTracking() {
+  fun erroredAbortedAndEmptyRunsFailOnce() {
+    val tracker = VoiceWakeReplyTracker()
+    for (state in listOf("aborted", "error")) {
+      tracker.arm(sessionKey = "agent:main:main", nowMs = 0)
+      assertEquals(
+        VoiceWakeReplyOutcome.Failed,
+        tracker.onChatEvent(chatEvent(runId = "run-$state", state = state, text = null), nowMs = 10),
+      )
+      assertNull(tracker.onChatEvent(chatEvent(runId = "run-$state", state = "final", text = "Late"), nowMs = 20))
+    }
+
+    // A final event without text leaves nothing to speak, which the user hears as a failure.
+    tracker.arm(sessionKey = "agent:main:main", nowMs = 0)
+    assertEquals(
+      VoiceWakeReplyOutcome.Failed,
+      tracker.onChatEvent(chatEvent(runId = "run-empty", state = "final", text = " "), nowMs = 10),
+    )
+  }
+
+  @Test
+  fun staleRunFailsWhenItsEventArrivesAfterTheTimeout() {
     val tracker = VoiceWakeReplyTracker(timeoutMs = 1_000)
     tracker.arm(sessionKey = "agent:main:main", nowMs = 0)
-    assertNull(tracker.onChatEvent(chatEvent(runId = "run-1", state = "aborted", text = null), nowMs = 10))
-    assertNull(tracker.onChatEvent(chatEvent(runId = "run-1", state = "final", text = "Late"), nowMs = 20))
 
-    tracker.arm(sessionKey = "agent:main:main", nowMs = 0)
-    assertNull(tracker.onChatEvent(chatEvent(runId = "run-3", state = "final", text = "Too late"), nowMs = 5_000))
+    assertEquals(
+      VoiceWakeReplyOutcome.Failed,
+      tracker.onChatEvent(chatEvent(runId = "run-1", state = "final", text = "Too late"), nowMs = 5_000),
+    )
+  }
+
+  @Test
+  fun expireOnlyFailsTheCommandItWasArmedFor() {
+    val tracker = VoiceWakeReplyTracker()
+    val first = tracker.arm(sessionKey = "agent:main:main", nowMs = 0)
+    val second = tracker.arm(sessionKey = "agent:main:main", nowMs = 10)
+
+    assertFalse(tracker.expire(first))
+    assertTrue(tracker.expire(second))
+    assertFalse(tracker.expire(second))
+
+    // An answered command is no longer pending, so its timer stays silent.
+    val answered = tracker.arm(sessionKey = "agent:main:main", nowMs = 20)
+    tracker.onChatEvent(chatEvent(runId = "run-1", state = "final", text = "Done"), nowMs = 30)
+    assertFalse(tracker.expire(answered))
   }
 
   @Test

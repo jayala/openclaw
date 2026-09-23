@@ -1000,6 +1000,7 @@
     <string name="native_88e0c9e9615456f9" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"没有突出显示的项目"</string>
     <string name="native_88e6e8384a7fc7ff" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"会话目标"</string>
     <string name="native_893a3e37d71c4563" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Gateway 已记录拒绝操作。"</string>
+    <string name="native_898d41c821ee7e35" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"Play command sounds"</string>
     <string name="native_8998824610d49175" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"向 OpenClaw 提问任何问题"</string>
     <string name="native_89bbfe23c3917a3f" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"重新连接以继续"</string>
     <string name="native_8a20f46d5276b474" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"%1$s 个已配对"</string>
@@ -1784,6 +1785,7 @@
     <string name="native_f616dfac9815faea" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"在 Gateway 上配置 %1$s"</string>
     <string name="native_f61d0c645f00a4ed" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"扫描二维码或使用 OpenClaw Gateway 提供的设置码。"</string>
     <string name="native_f6323e4e7ef2eea2" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"设计系统原型"</string>
+    <string name="native_f6733f38b6ebc05b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"A short tone when a command is sent, a low tone if it fails."</string>
     <string name="native_f6b21a4dbcd8e593" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"正在筛选"</string>
     <string name="native_f6d2b1ae590eb212" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">" · 语音对话: 已开启"</string>
     <string name="native_f6e82c3f136a6c5b" formatted="false" tools:ignore="Typos,TypographyDashes,TypographyEllipsis">"暂无用量数据。"</string>

@@ -620,6 +620,7 @@ class MainViewModel private constructor(
   val preferredAudioInputDevice: StateFlow<String?> = prefs.preferredAudioInputDevice
   val voiceWakeEnabled: StateFlow<Boolean> = prefs.voiceWakeEnabled
   val voiceWakeAgentId: StateFlow<String?> = prefs.voiceWakeAgentId
+  val voiceWakeEarconsEnabled: StateFlow<Boolean> = prefs.voiceWakeEarconsEnabled
   val voiceWakeWords: StateFlow<List<String>> = prefs.voiceWakeWords
   val voiceWakeAvailable: StateFlow<Boolean> = runtimeState(initial = false) { it.voiceWakeAvailable }
   val voiceWakeIsListening: StateFlow<Boolean> = runtimeState(initial = false) { it.voiceWakeIsListening }
@@ -1257,6 +1258,10 @@ class MainViewModel private constructor(
 
   fun setVoiceWakeEnabled(enabled: Boolean) {
     ensureRuntime().setVoiceWakeEnabled(enabled)
+  }
+
+  fun setVoiceWakeEarconsEnabled(enabled: Boolean) {
+    ensureRuntime().setVoiceWakeEarconsEnabled(enabled)
   }
 
   fun setVoiceWakeAgentId(agentId: String?) {

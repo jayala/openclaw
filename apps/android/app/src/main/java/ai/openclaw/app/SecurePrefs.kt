@@ -111,6 +111,7 @@ class SecurePrefs(
     private const val preferredAudioInputDeviceKey = "voice.preferredAudioInputDevice"
     private const val voiceWakeEnabledKey = "voiceWake.enabled"
     private const val voiceWakeAgentIdKey = "voiceWake.agentId"
+    private const val voiceWakeEarconsEnabledKey = "voiceWake.earconsEnabled"
     private const val voiceWakeWordsKey = "voiceWake.triggerWords"
     private const val appearanceTextScaleKey = "appearance.textScale"
     private const val appearanceThemeModeKey = "appearance.themeMode"
@@ -263,6 +264,9 @@ class SecurePrefs(
   // Null routes wake-word commands to the Chat session; an agent id gives them a session of their own.
   private val _voiceWakeAgentId = MutableStateFlow(normalizeVoiceWakeAgentId(plainPrefs.getString(voiceWakeAgentIdKey, null)))
   val voiceWakeAgentId: StateFlow<String?> = _voiceWakeAgentId
+
+  private val _voiceWakeEarconsEnabled = MutableStateFlow(plainPrefs.getBoolean(voiceWakeEarconsEnabledKey, true))
+  val voiceWakeEarconsEnabled: StateFlow<Boolean> = _voiceWakeEarconsEnabled
 
   private val _voiceWakeWords = MutableStateFlow(loadVoiceWakeWords())
   val voiceWakeWords: StateFlow<List<String>> = _voiceWakeWords
@@ -779,6 +783,11 @@ class SecurePrefs(
   fun setVoiceWakeEnabled(value: Boolean) {
     plainPrefs.edit { putBoolean(voiceWakeEnabledKey, value) }
     _voiceWakeEnabled.value = value
+  }
+
+  fun setVoiceWakeEarconsEnabled(value: Boolean) {
+    plainPrefs.edit { putBoolean(voiceWakeEarconsEnabledKey, value) }
+    _voiceWakeEarconsEnabled.value = value
   }
 
   fun setVoiceWakeAgentId(value: String?) {
